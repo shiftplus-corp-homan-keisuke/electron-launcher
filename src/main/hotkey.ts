@@ -1,10 +1,21 @@
-import { uIOhook, UiohookKey } from 'uiohook-napi';
-
 // ダブルShiftの検知ウィンドウ (ms)
 const DOUBLE_PRESS_INTERVAL = 400;
 
 // この秒数以上押しっぱなしのキーは「取りこぼし」とみなして除去
 const STALE_KEY_THRESHOLD = 5_000;
+
+const LEFT_SHIFT_KEYCODE = 42;
+const RIGHT_SHIFT_KEYCODE = 54;
+
+type UiohookKeyboardEvent = {
+  keycode: number;
+};
+
+type UiohookModule = {
+  on(event: 'keydown' | 'keyup', listener: (event: UiohookKeyboardEvent) => void): void;
+  start(): void;
+  stop(): void;
+};
 
 type ShiftSide = 'left' | 'right';
 
@@ -18,10 +29,28 @@ const nonShiftKeysDown = new Map<number, number>();
 
 let lastShiftTapTime = 0;
 let running = false;
+let uiohook: UiohookModule | null | undefined;
+
+function getUiohook(): UiohookModule | null {
+  if (uiohook !== undefined) {
+    return uiohook;
+  }
+
+  try {
+    const mod = require('uiohook-napi') as { uIOhook?: UiohookModule };
+    uiohook = mod.uIOhook ?? null;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`[hotkey] uiohook unavailable; hotkey disabled (${message})`);
+    uiohook = null;
+  }
+
+  return uiohook;
+}
 
 function getShiftSide(keycode: number): ShiftSide | null {
-  if (keycode === UiohookKey.Shift) return 'left';
-  if (keycode === UiohookKey.ShiftRight) return 'right';
+  if (keycode === LEFT_SHIFT_KEYCODE) return 'left';
+  if (keycode === RIGHT_SHIFT_KEYCODE) return 'right';
   return null;
 }
 
@@ -61,7 +90,10 @@ function resetState(): void {
 export function registerDoubleShiftHotkey(onDoubleShift: () => void): void {
   if (running) return;
 
-  uIOhook.on('keydown', (e) => {
+  const hook = getUiohook();
+  if (!hook) return;
+
+  hook.on('keydown', (e) => {
     const shiftSide = getShiftSide(e.keycode);
 
     if (shiftSide) {
@@ -93,7 +125,7 @@ export function registerDoubleShiftHotkey(onDoubleShift: () => void): void {
     }
   });
 
-  uIOhook.on('keyup', (e) => {
+  hook.on('keyup', (e) => {
     const shiftSide = getShiftSide(e.keycode);
 
     if (!shiftSide) {
@@ -129,7 +161,7 @@ export function registerDoubleShiftHotkey(onDoubleShift: () => void): void {
   });
 
   try {
-    uIOhook.start();
+    hook.start();
     running = true;
     console.log('[hotkey] Double-Shift listener started');
   } catch (err) {
@@ -139,8 +171,12 @@ export function registerDoubleShiftHotkey(onDoubleShift: () => void): void {
 
 export function unregisterHotkey(): void {
   if (!running) return;
+
+  const hook = getUiohook();
+  if (!hook) return;
+
   try {
-    uIOhook.stop();
+    hook.stop();
     running = false;
     console.log('[hotkey] Double-Shift listener stopped');
   } catch (err) {

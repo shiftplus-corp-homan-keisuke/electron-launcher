@@ -1,15 +1,53 @@
 import type { ForgeConfig } from '@electron-forge/shared-types';
+import path from 'node:path';
 import { MakerSquirrel } from '@electron-forge/maker-squirrel';
 import { MakerZIP } from '@electron-forge/maker-zip';
 import { AutoUnpackNativesPlugin } from '@electron-forge/plugin-auto-unpack-natives';
 import { VitePlugin } from '@electron-forge/plugin-vite';
 import { PublisherGithub } from '@electron-forge/publisher-github';
 
+const packagedPathAllowlist = [
+  '/.vite',
+  '/node_modules/uiohook-napi',
+  '/node_modules/node-gyp-build',
+  '/node_modules/koffi',
+];
+
+const normalizePackagedPath = (filePath: string) => {
+  const forwardSlashPath = filePath.replace(/\\/g, '/');
+
+  if (forwardSlashPath.startsWith('/')) {
+    return forwardSlashPath;
+  }
+
+  if (path.isAbsolute(filePath)) {
+    return `/${path.relative(__dirname, filePath).replace(/\\/g, '/')}`;
+  }
+
+  return `/${forwardSlashPath}`;
+};
+
+const shouldIgnorePackagedPath = (filePath: string) => {
+  const normalizedPath = normalizePackagedPath(filePath);
+
+  if (normalizedPath === '/') {
+    return false;
+  }
+
+  return !packagedPathAllowlist.some(
+    (allowedPath) =>
+      normalizedPath === allowedPath ||
+      normalizedPath.startsWith(`${allowedPath}/`) ||
+      allowedPath.startsWith(`${normalizedPath}/`),
+  );
+};
+
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
     icon: 'resources/icon',
     executableName: 'rakko-launcher',
+    ignore: shouldIgnorePackagedPath,
     extraResource: [
       'resources/icon.png',
       'resources/tray-icon.png',
