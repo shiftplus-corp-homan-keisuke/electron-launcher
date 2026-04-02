@@ -1,7 +1,7 @@
 {
   "name": "rakko-launcher",
   "productName": "らっこらんちゃー",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "フォルダ・アプリ・URLのクイックランチャー",
   "main": ".vite/build/main.js",
   "repository": {
