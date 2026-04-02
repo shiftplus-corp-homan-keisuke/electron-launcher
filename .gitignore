@@ -7,3 +7,7 @@ dist/
 Thumbs.db
 resources/*.ico
 resources/*.png
+!resources/icon.ico
+!resources/icon.png
+!resources/tray-icon.png
+!resources/tray-icon@2x.png
