@@ -1,0 +1,124 @@
+@import "tailwindcss";
+
+@theme inline {
+  --radius: 0.75rem;
+
+  --color-background: oklch(0.99 0.003 240);
+  --color-foreground: oklch(0.2 0.03 250);
+
+  --color-card: oklch(1.0 0 0);
+  --color-card-foreground: oklch(0.2 0.03 250);
+
+  --color-popover: oklch(1.0 0 0);
+  --color-popover-foreground: oklch(0.2 0.03 250);
+
+  --color-primary: oklch(0.55 0.2 264);
+  --color-primary-foreground: oklch(1.0 0 0);
+
+  --color-secondary: oklch(0.95 0.01 240);
+  --color-secondary-foreground: oklch(0.3 0.03 250);
+
+  --color-muted: oklch(0.96 0.005 240);
+  --color-muted-foreground: oklch(0.55 0.02 250);
+
+  --color-accent: oklch(0.93 0.03 264);
+  --color-accent-foreground: oklch(0.3 0.05 264);
+
+  --color-destructive: oklch(0.6 0.22 25);
+
+  --color-border: oklch(0.9 0.005 240);
+  --color-input: oklch(0.92 0.005 240);
+  --color-ring: oklch(0.55 0.2 264);
+
+  --color-sidebar: oklch(0.97 0.005 240);
+  --color-sidebar-foreground: oklch(0.2 0.03 250);
+  --color-sidebar-primary: oklch(0.55 0.2 264);
+  --color-sidebar-primary-foreground: oklch(1.0 0 0);
+  --color-sidebar-accent: oklch(0.93 0.03 264);
+  --color-sidebar-accent-foreground: oklch(0.3 0.05 264);
+  --color-sidebar-border: oklch(0.9 0.005 240);
+}
+
+.dark {
+  --color-background: oklch(0.18 0.02 250);
+  --color-foreground: oklch(0.95 0.01 240);
+
+  --color-card: oklch(0.22 0.02 250);
+  --color-card-foreground: oklch(0.95 0.01 240);
+
+  --color-popover: oklch(0.22 0.02 250);
+  --color-popover-foreground: oklch(0.95 0.01 240);
+
+  --color-primary: oklch(0.68 0.18 264);
+  --color-primary-foreground: oklch(0.15 0.02 250);
+
+  --color-secondary: oklch(0.28 0.025 250);
+  --color-secondary-foreground: oklch(0.9 0.01 240);
+
+  --color-muted: oklch(0.26 0.02 250);
+  --color-muted-foreground: oklch(0.65 0.015 250);
+
+  --color-accent: oklch(0.32 0.05 264);
+  --color-accent-foreground: oklch(0.9 0.01 240);
+
+  --color-destructive: oklch(0.65 0.2 25);
+
+  --color-border: oklch(0.3 0.015 250);
+  --color-input: oklch(0.3 0.015 250);
+  --color-ring: oklch(0.68 0.18 264);
+}
+
+@layer base {
+  :root {
+    --font-body: 'Yu Gothic UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+    --font-display: 'Segoe UI Variable Display', 'Yu Gothic UI', 'Hiragino Sans', sans-serif;
+  }
+
+  * {
+    @apply border-border outline-ring/50;
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+    -webkit-user-select: none;
+    user-select: none;
+    overflow: hidden;
+  }
+
+  /* テキスト入力は選択可能にする */
+  input, textarea {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  [data-display='true'] {
+    font-family: var(--font-display);
+  }
+}
+
+/* スクロールバーを非表示 */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ドラッグ可能なタイトルバー領域 */
+@utility drag-region {
+  -webkit-app-region: drag;
+}
+
+@utility no-drag {
+  -webkit-app-region: no-drag;
+}

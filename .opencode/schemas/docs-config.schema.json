@@ -1,0 +1,134 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Documentation Generator Configuration",
+  "description": "Configuration schema for the automatic documentation generator",
+  "type": "object",
+  "required": ["outputDir", "generators"],
+  "properties": {
+    "outputDir": {
+      "type": "string",
+      "description": "Output directory for generated documentation",
+      "default": "docs"
+    },
+    "include": {
+      "type": "array",
+      "description": "Glob patterns for files to include",
+      "items": {
+        "type": "string"
+      },
+      "default": ["src/**/*.{ts,tsx}"]
+    },
+    "exclude": {
+      "type": "array",
+      "description": "Glob patterns for files to exclude",
+      "items": {
+        "type": "string"
+      },
+      "default": ["**/*.test.{ts,tsx}", "**/node_modules/**"]
+    },
+    "generators": {
+      "type": "object",
+      "description": "Generator configurations",
+      "properties": {
+        "api": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "paths": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "format": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["markdown", "openapi"]
+              }
+            },
+            "output": {
+              "type": "string"
+            },
+            "openApiVersion": {
+              "type": "string",
+              "enum": ["3.0.0", "3.1.0"],
+              "default": "3.0.0"
+            }
+          }
+        },
+        "components": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "paths": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "format": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["markdown", "storybook"]
+              }
+            },
+            "output": {
+              "type": "string"
+            },
+            "generateScreenshots": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        },
+        "architecture": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "format": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["mermaid", "ascii", "plantuml"]
+              }
+            },
+            "output": {
+              "type": "string"
+            },
+            "maxDepth": {
+              "type": "integer",
+              "default": 5,
+              "minimum": 1,
+              "maximum": 20
+            }
+          }
+        }
+      }
+    },
+    "templates": {
+      "type": "object",
+      "properties": {
+        "customDir": {
+          "type": "string",
+          "description": "Custom templates directory"
+        },
+        "variables": {
+          "type": "object",
+          "description": "Custom variables for templates",
+          "additionalProperties": true
+        }
+      }
+    }
+  }
+}

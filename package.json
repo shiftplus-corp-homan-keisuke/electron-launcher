@@ -1,0 +1,58 @@
+{
+  "name": "kurimanjuu-launcher",
+  "productName": "くりまんじゅうらんちゃー",
+  "version": "1.0.0",
+  "description": "フォルダ・アプリ・URLのクイックランチャー",
+  "main": ".vite/build/main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shiftplus-corp-homan-keisuke/electron-launcher"
+  },
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "publish": "electron-forge publish",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [
+    "electron",
+    "launcher",
+    "quicklaunch",
+    "windows"
+  ],
+  "author": "shiftplus-corp-homan-keisuke",
+  "license": "MIT",
+  "devDependencies": {
+    "@electron-forge/cli": "^7.7.0",
+    "@electron-forge/maker-squirrel": "^7.7.0",
+    "@electron-forge/maker-zip": "^7.7.0",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.7.0",
+    "@electron-forge/plugin-vite": "^7.7.0",
+    "@electron-forge/publisher-github": "^7.11.1",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/uuid": "^10.0.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "electron": "^35.0.0",
+    "typescript": "~5.7.0",
+    "vite": "^6.2.0"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.1.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "koffi": "^2.15.2",
+    "lucide-react": "^0.507.0",
+    "radix-ui": "^1.4.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^3.2.0",
+    "tailwindcss": "^4.1.0",
+    "uiohook-napi": "^1.5.5",
+    "update-electron-app": "^3.1.2",
+    "uuid": "^11.1.0",
+    "zustand": "^5.0.3"
+  }
+}

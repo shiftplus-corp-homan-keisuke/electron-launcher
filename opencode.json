@@ -1,0 +1,47 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "chrome-devtools": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "chrome-devtools-mcp",
+        "--chromeArg=--disable-gpu"
+      ],
+      "enabled": false
+    },
+    "playwright": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@playwright/mcp",
+        "--config",
+        "/mnt/c/Users/SPOS-228/Desktop/work/electron/electron-remainder/.opencode/playwright-mcp.config.json"
+      ],
+      "enabled": true
+    },
+    "serena": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "serena-slim"
+      ],
+      "enabled": true
+    }
+  },
+  "provider": {
+    "amazon-bedrock": {
+      "options": {
+        "region": "ap-northeast-1",
+        "profile": "sso-aidd-practitioner"
+      }
+    }
+  },
+  "compaction": {
+    "auto": false,
+    "prune": true
+  }
+}
