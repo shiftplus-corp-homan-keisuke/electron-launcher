@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { FolderOpen, Monitor, Globe, Plus, Pencil, Trash2, X, Minus, Star } from 'lucide-react';
-import type { LauncherItem, ItemType } from '@shared/types';
+import { FolderOpen, Monitor, Globe, Plus, Pencil, Trash2, X, Minus, Star, Sun, Moon, MonitorSmartphone } from 'lucide-react';
+import type { LauncherItem, ItemType, AppSettings } from '@shared/types';
 import { useItemsStore } from '@/stores/items-store';
 import { getElectronAPI } from '@/lib/ipc';
 import { cn } from '@/lib/utils';
@@ -17,16 +17,30 @@ const categoryItems: { key: CategoryFilter; label: string; icon: typeof FolderOp
   { key: 'url', label: 'URL', icon: Globe },
 ];
 
+const themeOptions: { value: AppSettings['theme']; label: string; icon: typeof Sun }[] = [
+  { value: 'light', label: 'ライト', icon: Sun },
+  { value: 'dark', label: 'ダーク', icon: Moon },
+  { value: 'system', label: 'システム', icon: MonitorSmartphone },
+];
+
 export default function ManagementView() {
   const { items, initialize, deleteItem, togglePin } = useItemsStore();
   const [category, setCategory] = useState<CategoryFilter>('all');
   const [dialogMode, setDialogMode] = useState<'add' | 'edit' | null>(null);
   const [editingItem, setEditingItem] = useState<LauncherItem | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [currentTheme, setCurrentTheme] = useState<AppSettings['theme']>('system');
 
   useEffect(() => {
     void initialize();
+    // 現在のテーマ設定を取得
+    void getElectronAPI()?.getSettings().then((s) => setCurrentTheme(s.theme));
   }, [initialize]);
+
+  const handleThemeChange = async (theme: AppSettings['theme']) => {
+    setCurrentTheme(theme);
+    await getElectronAPI()?.saveSettings({ theme });
+  };
 
   const filtered = category === 'all' ? items : items.filter((i) => i.type === category);
 
@@ -87,25 +101,51 @@ export default function ManagementView() {
       {/* メインコンテンツ */}
       <div className="flex flex-1 overflow-hidden">
         {/* サイドバー */}
-        <aside className="flex w-36 shrink-0 flex-col gap-0.5 border-r border-border bg-sidebar p-3">
+        <aside className="flex w-36 shrink-0 flex-col border-r border-border bg-sidebar p-3">
           <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             カテゴリ
           </p>
-          {categoryItems.map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              className={cn(
-                'flex items-center gap-2 rounded-md px-2.5 py-2 text-sm transition-colors',
-                category === key
-                  ? 'bg-accent text-accent-foreground font-medium'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-              )}
-              onClick={() => setCategory(key)}
-            >
-              <Icon className="size-3.5 shrink-0" />
-              {label}
-            </button>
-          ))}
+          <div className="flex flex-col gap-0.5">
+            {categoryItems.map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                className={cn(
+                  'flex items-center gap-2 rounded-md px-2.5 py-2 text-sm transition-colors',
+                  category === key
+                    ? 'bg-accent text-accent-foreground font-medium'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                )}
+                onClick={() => setCategory(key)}
+              >
+                <Icon className="size-3.5 shrink-0" />
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* テーマ切替 */}
+          <div className="mt-auto border-t border-border pt-3">
+            <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              テーマ
+            </p>
+            <div className="flex flex-col gap-0.5">
+              {themeOptions.map(({ value, label, icon: Icon }) => (
+                <button
+                  key={value}
+                  className={cn(
+                    'flex items-center gap-2 rounded-md px-2.5 py-2 text-sm transition-colors',
+                    currentTheme === value
+                      ? 'bg-accent text-accent-foreground font-medium'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                  )}
+                  onClick={() => void handleThemeChange(value)}
+                >
+                  <Icon className="size-3.5 shrink-0" />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
         </aside>
 
         {/* アイテム一覧 */}

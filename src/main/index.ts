@@ -77,6 +77,22 @@ let lastShowTime = 0;
 const SHOW_BLUR_GUARD_MS = 300;
 
 // ─────────────────────────────────────────────────────────────
+// テーマ適用
+// ─────────────────────────────────────────────────────────────
+function applyTheme(): void {
+  const { theme } = settingsStore.get();
+  nativeTheme.themeSource = theme;
+  // nativeTheme.on('updated') が発火しない場合に備えて直接ブロードキャスト
+  broadcastThemeChanged();
+}
+
+function broadcastThemeChanged(): void {
+  const resolved = nativeTheme.shouldUseDarkColors ? 'dark' : 'light';
+  launcherWindow?.webContents.send(IPC_CHANNELS.THEME_CHANGED, resolved);
+  managementWindow?.webContents.send(IPC_CHANNELS.THEME_CHANGED, resolved);
+}
+
+// ─────────────────────────────────────────────────────────────
 // ランチャー表示/非表示
 // ─────────────────────────────────────────────────────────────
 function showLauncher(): void {
@@ -446,6 +462,7 @@ function registerIpcHandlers(): void {
   ipcMain.handle(IPC_CHANNELS.GET_SETTINGS, () => settingsStore.get());
   ipcMain.handle(IPC_CHANNELS.SAVE_SETTINGS, (_event, settings) => {
     settingsStore.set(settings);
+    applyTheme();
   });
 
   // テーマ
@@ -454,9 +471,7 @@ function registerIpcHandlers(): void {
   );
 
   nativeTheme.on('updated', () => {
-    const theme = nativeTheme.shouldUseDarkColors ? 'dark' : 'light';
-    launcherWindow?.webContents.send(IPC_CHANNELS.THEME_CHANGED, theme);
-    managementWindow?.webContents.send(IPC_CHANNELS.THEME_CHANGED, theme);
+    broadcastThemeChanged();
   });
 
   // ウィンドウ操作
@@ -533,6 +548,7 @@ function quit(): void {
 // アプリ起動
 // ─────────────────────────────────────────────────────────────
 app.whenReady().then(() => {
+  applyTheme();
   registerIpcHandlers();
   createWindows();
   initTray();

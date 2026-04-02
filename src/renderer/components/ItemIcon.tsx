@@ -24,8 +24,8 @@ interface ItemIconProps {
 // ─────────────────────────────────────────────────────────────
 function FolderIcon({ className }: { className?: string }) {
   return (
-    <div className={cn('flex size-8 shrink-0 items-center justify-center rounded-md bg-blue-100', className)}>
-      <FolderOpen className="size-4 text-blue-600" />
+    <div className={cn('flex size-8 shrink-0 items-center justify-center rounded-md bg-blue-100 dark:bg-blue-900/30', className)}>
+      <FolderOpen className="size-4 text-blue-600 dark:text-blue-400" />
     </div>
   );
 }
@@ -45,8 +45,8 @@ function AppIcon({ path, className }: { path: string; className?: string }) {
   }
 
   return (
-    <div className={cn('flex size-8 shrink-0 items-center justify-center rounded-md bg-green-100', className)}>
-      <Monitor className="size-4 text-green-600" />
+    <div className={cn('flex size-8 shrink-0 items-center justify-center rounded-md bg-green-100 dark:bg-green-900/30', className)}>
+      <Monitor className="size-4 text-green-600 dark:text-green-400" />
     </div>
   );
 }
@@ -60,7 +60,7 @@ function UrlIcon({ path, className }: { path: string; className?: string }) {
 
   if (faviconUrl && !faviconError) {
     return (
-      <div className={cn('flex size-8 shrink-0 items-center justify-center rounded-md bg-gray-50 border border-border/50', className)}>
+      <div className={cn('flex size-8 shrink-0 items-center justify-center rounded-md bg-gray-50 dark:bg-gray-800 border border-border/50', className)}>
         <img
           src={faviconUrl}
           alt=""
@@ -74,8 +74,8 @@ function UrlIcon({ path, className }: { path: string; className?: string }) {
 
   // フォールバック
   return (
-    <div className={cn('flex size-8 shrink-0 items-center justify-center rounded-md bg-orange-100', className)}>
-      <Globe className="size-4 text-orange-500" />
+    <div className={cn('flex size-8 shrink-0 items-center justify-center rounded-md bg-orange-100 dark:bg-orange-900/30', className)}>
+      <Globe className="size-4 text-orange-500 dark:text-orange-400" />
     </div>
   );
 }

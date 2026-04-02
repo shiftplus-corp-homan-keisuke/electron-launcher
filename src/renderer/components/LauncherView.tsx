@@ -17,12 +17,9 @@ const FILTERS: { key: FilterType; label: string; icon: typeof Globe }[] = [
 
 function sortItems(items: LauncherItem[]): LauncherItem[] {
   return [...items].sort((a, b) => {
-    // ピン留めアイテムを上位に
+    // ピン留めアイテムを上位に、それ以外は登録順を維持
     if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
-    // 同グループ内は使用頻度順（降順）
-    if (a.launchCount !== b.launchCount) return b.launchCount - a.launchCount;
-    // 同頻度なら最近使った順
-    return b.lastLaunchedAt - a.lastLaunchedAt;
+    return 0;
   });
 }
 
