@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FolderOpen, Monitor, Globe, Plus, Pencil, Trash2, X, Minus } from 'lucide-react';
+import { FolderOpen, Monitor, Globe, Plus, Pencil, Trash2, X, Minus, Star } from 'lucide-react';
 import type { LauncherItem, ItemType } from '@shared/types';
 import { useItemsStore } from '@/stores/items-store';
 import { getElectronAPI } from '@/lib/ipc';
@@ -18,7 +18,7 @@ const categoryItems: { key: CategoryFilter; label: string; icon: typeof FolderOp
 ];
 
 export default function ManagementView() {
-  const { items, initialize, deleteItem } = useItemsStore();
+  const { items, initialize, deleteItem, togglePin } = useItemsStore();
   const [category, setCategory] = useState<CategoryFilter>('all');
   const [dialogMode, setDialogMode] = useState<'add' | 'edit' | null>(null);
   const [editingItem, setEditingItem] = useState<LauncherItem | null>(null);
@@ -156,6 +156,18 @@ export default function ManagementView() {
 
                     {/* 操作ボタン */}
                     <div className="flex items-center gap-1">
+                      <button
+                        className={cn(
+                          'flex size-7 items-center justify-center rounded-md transition-colors',
+                          item.pinned
+                            ? 'text-amber-500 hover:text-amber-600'
+                            : 'text-muted-foreground hover:bg-muted hover:text-amber-500',
+                        )}
+                        onClick={() => void togglePin(item.id)}
+                        aria-label={item.pinned ? 'ピン留め解除' : 'ピン留め'}
+                      >
+                        <Star className={cn('size-3.5', item.pinned && 'fill-current')} />
+                      </button>
                       <button
                         className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                         onClick={() => handleEdit(item)}

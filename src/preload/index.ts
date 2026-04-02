@@ -7,7 +7,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getItems: (): Promise<LauncherItem[]> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_ITEMS),
 
-  addItem: (item: Omit<LauncherItem, 'id' | 'createdAt'>): Promise<void> =>
+  addItem: (item: Omit<LauncherItem, 'id' | 'createdAt' | 'pinned' | 'launchCount' | 'lastLaunchedAt'>): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.ADD_ITEM, item),
 
   updateItem: (item: LauncherItem): Promise<void> =>
@@ -15,6 +15,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   deleteItem: (id: string): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.DELETE_ITEM, id),
+
+  togglePin: (id: string): Promise<void> =>
+    ipcRenderer.invoke(IPC_CHANNELS.TOGGLE_PIN, id),
 
   onItemsChanged: (callback: (items: LauncherItem[]) => void): (() => void) => {
     const listener = (_event: Electron.IpcRendererEvent, items: LauncherItem[]) =>

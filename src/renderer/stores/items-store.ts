@@ -7,9 +7,10 @@ interface ItemsState {
   initialized: boolean;
   initialize: () => Promise<void>;
   setItems: (items: LauncherItem[]) => void;
-  addItem: (item: Omit<LauncherItem, 'id' | 'createdAt'>) => Promise<void>;
+  addItem: (item: Omit<LauncherItem, 'id' | 'createdAt' | 'pinned' | 'launchCount' | 'lastLaunchedAt'>) => Promise<void>;
   updateItem: (item: LauncherItem) => Promise<void>;
   deleteItem: (id: string) => Promise<void>;
+  togglePin: (id: string) => Promise<void>;
 }
 
 export const useItemsStore = create<ItemsState>((set, get) => ({
@@ -43,5 +44,9 @@ export const useItemsStore = create<ItemsState>((set, get) => ({
 
   deleteItem: async (id) => {
     await getElectronAPI()?.deleteItem(id);
+  },
+
+  togglePin: async (id) => {
+    await getElectronAPI()?.togglePin(id);
   },
 }));

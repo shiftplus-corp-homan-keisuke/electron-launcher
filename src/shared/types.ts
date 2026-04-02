@@ -6,6 +6,9 @@ export interface LauncherItem {
   name: string;
   path: string;
   createdAt: number;
+  pinned: boolean;
+  launchCount: number;
+  lastLaunchedAt: number;
 }
 
 export interface AppSettings {

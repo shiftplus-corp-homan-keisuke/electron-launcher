@@ -353,7 +353,7 @@ function registerIpcHandlers(): void {
   ipcMain.handle(IPC_CHANNELS.GET_ITEMS, () => itemStore.getAll());
 
   // アイテム追加
-  ipcMain.handle(IPC_CHANNELS.ADD_ITEM, (_event, item: Omit<LauncherItem, 'id' | 'createdAt'>) => {
+  ipcMain.handle(IPC_CHANNELS.ADD_ITEM, (_event, item: Omit<LauncherItem, 'id' | 'createdAt' | 'pinned' | 'launchCount' | 'lastLaunchedAt'>) => {
     itemStore.add(item);
     broadcastItemsChanged();
   });
@@ -370,6 +370,12 @@ function registerIpcHandlers(): void {
     broadcastItemsChanged();
   });
 
+  // ピン留めトグル
+  ipcMain.handle(IPC_CHANNELS.TOGGLE_PIN, (_event, id: string) => {
+    itemStore.togglePin(id);
+    broadcastItemsChanged();
+  });
+
   // アイテム起動 (起動後にランチャーを隠す)
   ipcMain.handle(IPC_CHANNELS.LAUNCH_ITEM, async (_event, item: LauncherItem) => {
     try {
@@ -381,6 +387,9 @@ function registerIpcHandlers(): void {
           console.error('Failed to open path:', result);
         }
       }
+      // 起動回数を記録
+      itemStore.recordLaunch(item.id);
+      broadcastItemsChanged();
     } catch (err) {
       console.error('Failed to launch item:', err);
     }

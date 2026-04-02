@@ -6,6 +6,7 @@ export const IPC_CHANNELS = {
   ADD_ITEM: 'add-item',
   UPDATE_ITEM: 'update-item',
   DELETE_ITEM: 'delete-item',
+  TOGGLE_PIN: 'toggle-pin',
   ITEMS_CHANGED: 'items-changed',       // Main → Renderer: アイテム変更通知
 
   // ランチャー操作
@@ -56,6 +57,9 @@ export const DEFAULT_ITEMS: LauncherItem[] = [
     name: 'Documents',
     path: 'C:/Users/User/Documents',
     createdAt: Date.now(),
+    pinned: false,
+    launchCount: 0,
+    lastLaunchedAt: 0,
   },
   {
     id: 'default-2',
@@ -63,5 +67,8 @@ export const DEFAULT_ITEMS: LauncherItem[] = [
     name: 'Desktop',
     path: 'C:/Users/User/Desktop',
     createdAt: Date.now(),
+    pinned: false,
+    launchCount: 0,
+    lastLaunchedAt: 0,
   },
 ];

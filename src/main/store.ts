@@ -21,11 +21,24 @@ export class ItemStore {
     this.load();
   }
 
+  /** 既存データに新フィールドが無い場合のデフォルト値補完 */
+  private migrate(items: unknown[]): LauncherItem[] {
+    return items.map((raw) => {
+      const item = raw as Partial<LauncherItem> & Pick<LauncherItem, 'id' | 'type' | 'name' | 'path' | 'createdAt'>;
+      return {
+        ...item,
+        pinned: item.pinned ?? false,
+        launchCount: item.launchCount ?? 0,
+        lastLaunchedAt: item.lastLaunchedAt ?? 0,
+      };
+    });
+  }
+
   private load(): void {
     try {
       if (fs.existsSync(this.filePath)) {
         const raw = fs.readFileSync(this.filePath, 'utf-8');
-        this.items = JSON.parse(raw) as LauncherItem[];
+        this.items = this.migrate(JSON.parse(raw) as unknown[]);
       }
     } catch {
       this.items = [];
@@ -45,11 +58,14 @@ export class ItemStore {
     return [...this.items];
   }
 
-  add(item: Omit<LauncherItem, 'id' | 'createdAt'>): LauncherItem {
+  add(item: Omit<LauncherItem, 'id' | 'createdAt' | 'pinned' | 'launchCount' | 'lastLaunchedAt'>): LauncherItem {
     const newItem: LauncherItem = {
       ...item,
       id: uuidv4(),
       createdAt: Date.now(),
+      pinned: false,
+      launchCount: 0,
+      lastLaunchedAt: 0,
     };
     this.items.push(newItem);
     this.save();
@@ -72,6 +88,22 @@ export class ItemStore {
       return true;
     }
     return false;
+  }
+
+  togglePin(id: string): boolean {
+    const item = this.items.find((i) => i.id === id);
+    if (!item) return false;
+    item.pinned = !item.pinned;
+    this.save();
+    return true;
+  }
+
+  recordLaunch(id: string): void {
+    const item = this.items.find((i) => i.id === id);
+    if (!item) return;
+    item.launchCount += 1;
+    item.lastLaunchedAt = Date.now();
+    this.save();
   }
 }
 

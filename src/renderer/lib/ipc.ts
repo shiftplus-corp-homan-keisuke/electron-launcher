@@ -4,9 +4,10 @@ import type { LauncherItem, AppSettings, InstalledApp } from '@shared/types';
 export interface ElectronAPI {
   // アイテム管理
   getItems(): Promise<LauncherItem[]>;
-  addItem(item: Omit<LauncherItem, 'id' | 'createdAt'>): Promise<void>;
+  addItem(item: Omit<LauncherItem, 'id' | 'createdAt' | 'pinned' | 'launchCount' | 'lastLaunchedAt'>): Promise<void>;
   updateItem(item: LauncherItem): Promise<void>;
   deleteItem(id: string): Promise<void>;
+  togglePin(id: string): Promise<void>;
   onItemsChanged(callback: (items: LauncherItem[]) => void): () => void;
 
   // ランチャー操作
