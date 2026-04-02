@@ -74,7 +74,7 @@ export default function ManagementView() {
   };
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-border bg-background shadow-2xl">
+    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-2xl ring-1 ring-foreground/10">
       {/* タイトルバー (ドラッグ可能) */}
       <div className="drag-region flex items-center justify-between border-b border-border px-5 py-3.5">
         <span className="text-sm font-semibold text-foreground" data-display="true">

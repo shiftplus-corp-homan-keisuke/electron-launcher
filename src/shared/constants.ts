@@ -47,7 +47,7 @@ export const IPC_CHANNELS = {
 export const DEFAULT_SETTINGS: AppSettings = {
   hotkey: 'Ctrl+Shift+Space',
   launchAtStartup: false,
-  theme: 'system',
+  theme: 'dark',
 };
 
 export const DEFAULT_ITEMS: LauncherItem[] = [

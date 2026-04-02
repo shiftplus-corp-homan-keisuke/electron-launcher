@@ -79,7 +79,7 @@ export function createManagementWindow(): BrowserWindow {
       contextIsolation: true,
       nodeIntegration: false,
     },
-    title: 'アイテム管理 - くりまんじゅうらんちゃー',
+    title: 'アイテム管理 - らっこらんちゃー',
   });
 
   loadURL(win, 'management');

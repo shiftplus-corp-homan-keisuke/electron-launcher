@@ -5,6 +5,46 @@ import { v4 as uuidv4 } from 'uuid';
 import type { LauncherItem, AppSettings } from '../shared/types';
 import { DEFAULT_SETTINGS } from '../shared/constants';
 
+// ─────────────────────────────────────────────────────────────
+// 旧アプリ名 → 新アプリ名 へのデータ移行
+// productName 変更により userData パスが変わるため、
+// 旧ディレクトリのデータファイルを新ディレクトリにコピーする。
+// ─────────────────────────────────────────────────────────────
+const OLD_APP_NAME = 'くりまんじゅうらんちゃー';
+const MIGRATION_FILES = ['items.json', 'settings.json'];
+
+function migrateFromOldUserData(): void {
+  const newUserData = app.getPath('userData');
+  const oldUserData = path.join(path.dirname(newUserData), OLD_APP_NAME);
+
+  if (!fs.existsSync(oldUserData)) return;
+
+  // 新ディレクトリに既にデータが存在する場合は移行済みとみなしスキップ
+  const alreadyMigrated = MIGRATION_FILES.some((f) =>
+    fs.existsSync(path.join(newUserData, f)),
+  );
+  if (alreadyMigrated) return;
+
+  fs.mkdirSync(newUserData, { recursive: true });
+
+  for (const filename of MIGRATION_FILES) {
+    const src = path.join(oldUserData, filename);
+    const dest = path.join(newUserData, filename);
+    if (fs.existsSync(src)) {
+      try {
+        fs.copyFileSync(src, dest);
+      } catch (err) {
+        console.error(`Failed to migrate ${filename}:`, err);
+      }
+    }
+  }
+
+  console.log(`[migration] Data migrated from "${oldUserData}" to "${newUserData}"`);
+}
+
+// アプリ起動時にデータ移行を実行
+migrateFromOldUserData();
+
 function getStorePath(filename: string): string {
   return path.join(app.getPath('userData'), filename);
 }

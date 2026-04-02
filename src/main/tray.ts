@@ -26,7 +26,7 @@ export class TrayManager {
       return false;
     }
 
-    this.tray.setToolTip('くりまんじゅうらんちゃー');
+    this.tray.setToolTip('らっこらんちゃー');
 
     // シングルクリックでランチャー表示
     this.tray.on('click', () => {

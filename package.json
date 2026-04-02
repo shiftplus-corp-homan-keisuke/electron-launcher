@@ -1,6 +1,6 @@
 {
-  "name": "kurimanjuu-launcher",
-  "productName": "くりまんじゅうらんちゃー",
+  "name": "rakko-launcher",
+  "productName": "らっこらんちゃー",
   "version": "1.0.0",
   "description": "フォルダ・アプリ・URLのクイックランチャー",
   "main": ".vite/build/main.js",

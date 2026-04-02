@@ -9,7 +9,7 @@ const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
     icon: 'resources/icon',
-    executableName: 'kurimanjuu-launcher',
+    executableName: 'rakko-launcher',
     extraResource: [
       'resources/icon.png',
       'resources/tray-icon.png',
@@ -17,9 +17,9 @@ const config: ForgeConfig = {
     ],
     appCopyright: `Copyright © ${new Date().getFullYear()}`,
     win32metadata: {
-      FileDescription: 'くりまんじゅうらんちゃー',
-      OriginalFilename: 'kurimanjuu-launcher.exe',
-      ProductName: 'くりまんじゅうらんちゃー',
+      FileDescription: 'らっこらんちゃー',
+      OriginalFilename: 'rakko-launcher.exe',
+      ProductName: 'らっこらんちゃー',
     },
   },
   rebuildConfig: {
@@ -28,9 +28,9 @@ const config: ForgeConfig = {
   },
   makers: [
     new MakerSquirrel({
-      name: 'kurimanjuu_launcher',
+      name: 'rakko_launcher',
       setupIcon: 'resources/icon.ico',
-      setupExe: 'KurimanjiuLauncherSetup.exe',
+      setupExe: 'RakkoLauncherSetup.exe',
     }),
     new MakerZIP({}),
   ],

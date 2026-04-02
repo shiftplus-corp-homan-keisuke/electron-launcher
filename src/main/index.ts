@@ -40,7 +40,7 @@ for (const stream of [process.stdout, process.stderr]) {
 // Windows AppUserModelId (通知・タスクバー用)
 // ─────────────────────────────────────────────────────────────
 if (process.platform === 'win32') {
-  app.setAppUserModelId('com.kurimanjuu-launcher.app');
+  app.setAppUserModelId('com.rakko-launcher.app');
 }
 
 if (process.platform === 'linux') {

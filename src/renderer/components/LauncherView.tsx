@@ -160,7 +160,7 @@ export default function LauncherView() {
 
   return (
     <div
-      className="flex h-full flex-col overflow-hidden rounded-xl border border-border bg-background shadow-2xl"
+      className="flex h-full flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-2xl ring-1 ring-foreground/10"
       onMouseDown={(e) => {
         // ボタン・input 以外のクリックではフォーカス移動を抑止し、検索欄にフォーカスを保持
         const target = e.target as HTMLElement;
