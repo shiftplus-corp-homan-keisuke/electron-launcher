@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FolderOpen, Monitor, Globe, Plus, Pencil, Trash2, X, Minus, Star, Sun, Moon, MonitorSmartphone } from 'lucide-react';
+import { FolderOpen, Monitor, Globe, Plus, Pencil, Trash2, X, Minus, Star, Sun, Moon, MonitorSmartphone, FileText } from 'lucide-react';
 import type { LauncherItem, ItemType, AppSettings } from '@shared/types';
 import { useItemsStore } from '@/stores/items-store';
 import { getElectronAPI } from '@/lib/ipc';
@@ -11,10 +11,11 @@ import ItemDialog from './ItemDialog';
 type CategoryFilter = 'all' | ItemType;
 
 const categoryItems: { key: CategoryFilter; label: string; icon: typeof FolderOpen }[] = [
-  { key: 'all', label: 'すべて', icon: Globe },
-  { key: 'folder', label: 'フォルダ', icon: FolderOpen },
-  { key: 'app', label: 'アプリ', icon: Monitor },
-  { key: 'url', label: 'URL', icon: Globe },
+  { key: 'all',     label: 'すべて',      icon: Globe },
+  { key: 'folder',  label: 'フォルダ',    icon: FolderOpen },
+  { key: 'app',     label: 'アプリ',      icon: Monitor },
+  { key: 'url',     label: 'URL',         icon: Globe },
+  { key: 'snippet', label: 'スニペット',  icon: FileText },
 ];
 
 const themeOptions: { value: AppSettings['theme']; label: string; icon: typeof Sun }[] = [
@@ -189,7 +190,9 @@ export default function ManagementView() {
                           {item.name}
                         </div>
                         <div className="truncate text-xs text-muted-foreground">
-                          {item.path}
+                          {item.type === 'snippet'
+                            ? (item.content?.slice(0, 60) ?? '') + (item.content && item.content.length > 60 ? '…' : '')
+                            : item.path}
                         </div>
                       </div>
                     </div>

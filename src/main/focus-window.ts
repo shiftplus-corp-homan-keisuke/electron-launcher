@@ -12,7 +12,12 @@ import { BrowserWindow } from 'electron';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let win32: {
   forceFocus: (hwndBuf: Buffer) => void;
+  saveForeground: () => void;
+  restoreForeground: () => boolean;
 } | null = null;
+
+/** スニペット貼り付け後に復帰するウィンドウの HWND (koffi が返すポインタ値) */
+let savedHwnd: unknown = null;
 
 if (process.platform === 'win32') {
   try {
@@ -32,6 +37,7 @@ if (process.platform === 'win32') {
     );
     const SetForegroundWindow = user32.func('bool SetForegroundWindow(void *hWnd)');
     const BringWindowToTop = user32.func('bool BringWindowToTop(void *hWnd)');
+    const IsWindow = user32.func('bool IsWindow(void *hWnd)');
 
     win32 = {
       forceFocus(hwndBuf: Buffer) {
@@ -53,6 +59,29 @@ if (process.platform === 'win32') {
           AttachThreadInput(myThread, fgThread, false);
         }
       },
+
+      saveForeground() {
+        savedHwnd = GetForegroundWindow();
+        console.log('[focus-window] Saved foreground window');
+      },
+
+      restoreForeground() {
+        if (savedHwnd === null) return false;
+        try {
+          // IsWindow: 保存後にウィンドウが閉じられていないか確認
+          if (!IsWindow(savedHwnd)) {
+            console.warn('[focus-window] Saved window is no longer valid');
+            return false;
+          }
+          SetForegroundWindow(savedHwnd);
+          BringWindowToTop(savedHwnd);
+          console.log('[focus-window] Restored foreground window');
+          return true;
+        } finally {
+          // 成否に関わらず保存済み HWND をクリア
+          savedHwnd = null;
+        }
+      },
     };
 
     console.log('[focus-window] Win32 focus helper loaded');
@@ -67,5 +96,33 @@ export function forceFocusWindow(win: BrowserWindow): void {
     win32.forceFocus(win.getNativeWindowHandle());
   } catch (err) {
     console.error('[focus-window] Failed to force focus:', err);
+  }
+}
+
+/**
+ * 現在の前面ウィンドウ (HWND) を保存する。
+ * スニペット起動前 (ランチャー表示時) に呼び出す。
+ */
+export function saveForegroundWindow(): void {
+  if (!win32) return;
+  try {
+    win32.saveForeground();
+  } catch (err) {
+    console.error('[focus-window] Failed to save foreground window:', err);
+  }
+}
+
+/**
+ * 保存済みの前面ウィンドウにフォーカスを復帰させる。
+ * スニペット確定後 (ランチャー非表示後) に呼び出す。
+ * @returns 復帰に成功した場合は true、失敗/スキップ時は false
+ */
+export function restoreForegroundWindow(): boolean {
+  if (!win32) return false;
+  try {
+    return win32.restoreForeground();
+  } catch (err) {
+    console.error('[focus-window] Failed to restore foreground window:', err);
+    return false;
   }
 }

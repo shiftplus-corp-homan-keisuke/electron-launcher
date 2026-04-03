@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { FolderOpen, Monitor, Globe, FolderSearch, Loader2, Wand2, AppWindow } from 'lucide-react';
+import { FolderOpen, Monitor, Globe, FolderSearch, Loader2, Wand2, AppWindow, FileText } from 'lucide-react';
 import type { LauncherItem, ItemType, InstalledApp } from '@shared/types';
 import { useItemsStore } from '@/stores/items-store';
 import { getElectronAPI } from '@/lib/ipc';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import AppPickerDialog from './AppPickerDialog';
 
@@ -17,9 +18,10 @@ interface ItemDialogProps {
 }
 
 const typeOptions: { value: ItemType; label: string; icon: typeof FolderOpen }[] = [
-  { value: 'folder', label: 'フォルダ', icon: FolderOpen },
-  { value: 'app',    label: 'アプリ',   icon: Monitor },
-  { value: 'url',    label: 'URL',      icon: Globe },
+  { value: 'folder',  label: 'フォルダ',    icon: FolderOpen },
+  { value: 'app',     label: 'アプリ',      icon: Monitor },
+  { value: 'url',     label: 'URL',         icon: Globe },
+  { value: 'snippet', label: 'スニペット',  icon: FileText },
 ];
 
 export default function ItemDialog({ mode, item, defaultType, onClose }: ItemDialogProps) {
@@ -28,8 +30,10 @@ export default function ItemDialog({ mode, item, defaultType, onClose }: ItemDia
   const [type, setType]           = useState<ItemType>(item?.type ?? defaultType ?? 'folder');
   const [name, setName]           = useState(item?.name ?? '');
   const [itemPath, setItemPath]   = useState(item?.path ?? '');
+  const [content, setContent]     = useState(item?.content ?? '');
   const [nameError, setNameError] = useState('');
   const [pathError, setPathError] = useState('');
+  const [contentError, setContentError] = useState('');
   const [saving, setSaving]       = useState(false);
   const [loadingName, setLoadingName] = useState(false);
   const [showAppPicker, setShowAppPicker] = useState(false);
@@ -44,6 +48,7 @@ export default function ItemDialog({ mode, item, defaultType, onClose }: ItemDia
       setType(item.type);
       setName(item.name);
       setItemPath(item.path);
+      setContent(item.content ?? '');
     }
   }, [item]);
 
@@ -75,14 +80,16 @@ export default function ItemDialog({ mode, item, defaultType, onClose }: ItemDia
   }, [type, itemPath, fetchName]);
 
   // ─────────────────────────────────────────────────────────────
-  // 種類変更: パス・名前をリセット
+  // 種類変更: パス・名前・内容をリセット
   // ─────────────────────────────────────────────────────────────
   const handleTypeChange = (newType: ItemType) => {
     setType(newType);
     setItemPath('');
     setName('');
+    setContent('');
     setPathError('');
     setNameError('');
+    setContentError('');
     nameAutoRef.current = true; // 自動モードに戻す
   };
 
@@ -124,18 +131,26 @@ export default function ItemDialog({ mode, item, defaultType, onClose }: ItemDia
     let valid = true;
     setNameError('');
     setPathError('');
+    setContentError('');
 
     if (!name.trim()) {
       setNameError('名前を入力してください');
       valid = false;
     }
-    if (!itemPath.trim()) {
-      setPathError(type === 'url' ? 'URLを入力してください' : 'パスを入力してください');
-      valid = false;
-    }
-    if (type === 'url' && itemPath.trim() && !/^https?:\/\//.test(itemPath.trim())) {
-      setPathError('URLは http:// または https:// で始めてください');
-      valid = false;
+    if (type === 'snippet') {
+      if (!content.trim()) {
+        setContentError('スニペット本文を入力してください');
+        valid = false;
+      }
+    } else {
+      if (!itemPath.trim()) {
+        setPathError(type === 'url' ? 'URLを入力してください' : 'パスを入力してください');
+        valid = false;
+      }
+      if (type === 'url' && itemPath.trim() && !/^https?:\/\//.test(itemPath.trim())) {
+        setPathError('URLは http:// または https:// で始めてください');
+        valid = false;
+      }
     }
     return valid;
   };
@@ -147,7 +162,10 @@ export default function ItemDialog({ mode, item, defaultType, onClose }: ItemDia
     if (!validate()) return;
     setSaving(true);
     try {
-      const payload = { type, name: name.trim(), path: itemPath.trim() };
+      const payload =
+        type === 'snippet'
+          ? { type, name: name.trim(), path: '', content: content.trim() }
+          : { type, name: name.trim(), path: itemPath.trim() };
       if (mode === 'add') {
         await addItem(payload);
       } else if (item) {
@@ -203,56 +221,81 @@ export default function ItemDialog({ mode, item, defaultType, onClose }: ItemDia
             </div>
           </div>
 
-          {/* パス / URL ─ 名前より先に配置して先に入力させる */}
-          <div className="space-y-1.5">
-            <Label htmlFor="item-path" className="text-xs text-muted-foreground">
-              {type === 'url' ? 'URL' : 'パス'}
-            </Label>
-            <div className="flex gap-2">
-              <Input
-                id="item-path"
-                placeholder={
-                  type === 'url'
-                    ? '例: https://example.com'
-                    : '例: C:/Users/... または 参照ボタンで選択'
-                }
-                value={itemPath}
-                onChange={(e) => {
-                  setItemPath(e.target.value);
-                  if (pathError) setPathError('');
-                  // URL 手動入力中は自動モードを維持
-                  if (type === 'url') nameAutoRef.current = true;
-                }}
-                className={cn(
-                  'flex-1',
-                  pathError && 'border-destructive focus-visible:ring-destructive/30',
+          {/* パス / URL — snippet 以外で表示 */}
+          {type !== 'snippet' && (
+            <div className="space-y-1.5">
+              <Label htmlFor="item-path" className="text-xs text-muted-foreground">
+                {type === 'url' ? 'URL' : 'パス'}
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  id="item-path"
+                  placeholder={
+                    type === 'url'
+                      ? '例: https://example.com'
+                      : '例: C:/Users/... または 参照ボタンで選択'
+                  }
+                  value={itemPath}
+                  onChange={(e) => {
+                    setItemPath(e.target.value);
+                    if (pathError) setPathError('');
+                    // URL 手動入力中は自動モードを維持
+                    if (type === 'url') nameAutoRef.current = true;
+                  }}
+                  className={cn(
+                    'flex-1',
+                    pathError && 'border-destructive focus-visible:ring-destructive/30',
+                  )}
+                />
+                {type !== 'url' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="shrink-0 gap-1.5 text-xs"
+                    onClick={() => void handleBrowse()}
+                  >
+                    <FolderSearch className="size-3.5" />
+                    参照...
+                  </Button>
                 )}
-              />
-              {type !== 'url' && (
+              </div>
+              {type === 'app' && (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="shrink-0 gap-1.5 text-xs"
-                  onClick={() => void handleBrowse()}
+                  className="w-full gap-1.5 text-xs"
+                  onClick={() => setShowAppPicker(true)}
                 >
-                  <FolderSearch className="size-3.5" />
-                  参照...
+                  <AppWindow className="size-3.5" />
+                  インストール済みアプリから選択...
                 </Button>
               )}
+              {pathError && <p className="text-xs text-destructive">{pathError}</p>}
             </div>
-            {type === 'app' && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full gap-1.5 text-xs"
-                onClick={() => setShowAppPicker(true)}
-              >
-                <AppWindow className="size-3.5" />
-                インストール済みアプリから選択...
-              </Button>
-            )}
-            {pathError && <p className="text-xs text-destructive">{pathError}</p>}
-          </div>
+          )}
+
+          {/* スニペット本文 — snippet のみ表示 */}
+          {type === 'snippet' && (
+            <div className="space-y-1.5">
+              <Label htmlFor="item-content" className="text-xs text-muted-foreground">
+                スニペット本文
+              </Label>
+              <Textarea
+                id="item-content"
+                placeholder="例: よく使うテキストや定型文を入力..."
+                value={content}
+                rows={6}
+                onChange={(e) => {
+                  setContent(e.target.value);
+                  if (contentError) setContentError('');
+                }}
+                className={cn(
+                  contentError && 'border-destructive focus-visible:ring-destructive/30',
+                )}
+              />
+              {contentError && <p className="text-xs text-destructive">{contentError}</p>}
+            </div>
+          )}
 
           {/* 名前 */}
           <div className="space-y-1.5">
@@ -282,9 +325,10 @@ export default function ItemDialog({ mode, item, defaultType, onClose }: ItemDia
             <Input
               id="item-name"
               placeholder={
-                type === 'folder' ? '例: Documents' :
-                type === 'app'    ? '例: Visual Studio Code' :
-                                    '例: GitHub'
+                type === 'folder'  ? '例: Documents' :
+                type === 'app'     ? '例: Visual Studio Code' :
+                type === 'snippet' ? '例: 挨拶メール定型文' :
+                                     '例: GitHub'
               }
               value={name}
               onChange={(e) => {

@@ -94,4 +94,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // ─── ファイルアイコン取得 ──────────────────────────────────────
   getFileIcon: (filePath: string): Promise<string | null> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_FILE_ICON, filePath),
+
+  // ─── スニペット貼り付け ────────────────────────────────────────
+  pasteSnippet: (content: string): Promise<void> =>
+    ipcRenderer.invoke(IPC_CHANNELS.PASTE_SNIPPET, content),
 });

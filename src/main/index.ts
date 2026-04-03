@@ -7,6 +7,7 @@ import {
   dialog,
   nativeTheme,
   net,
+  clipboard,
 } from 'electron';
 import nodePath from 'path';
 import fs from 'fs';
@@ -25,6 +26,8 @@ import {
   showLauncherCentered,
   showManagementCentered,
 } from './windows';
+import { saveForegroundWindow, restoreForegroundWindow } from './focus-window';
+import { sendCtrlV } from './paste-snippet';
 
 // ─────────────────────────────────────────────────────────────
 // stdout/stderr エラーハンドリング
@@ -72,6 +75,9 @@ let isQuitting = false;
 // 管理ウィンドウが開いている間はランチャーのblurで隠さないためのフラグ
 let managementOpening = false;
 
+// スニペット貼り付け処理中は blur による自動非表示を抑制するフラグ
+let snippetPasting = false;
+
 // showLauncher 直後の blur で即隠れるのを防ぐためのタイムスタンプ
 let lastShowTime = 0;
 const SHOW_BLUR_GUARD_MS = 300;
@@ -97,6 +103,11 @@ function broadcastThemeChanged(): void {
 // ─────────────────────────────────────────────────────────────
 function showLauncher(): void {
   if (!launcherWindow) return;
+  // ランチャーが非表示の場合のみ前面ウィンドウを保存する。
+  // 既に表示中に再呼び出しされた場合は上書きしない。
+  if (!launcherWindow.isVisible()) {
+    saveForegroundWindow();
+  }
   lastShowTime = Date.now();
   showLauncherCentered(launcherWindow);
   // レンダラーに表示通知 (検索欄リセット用)
@@ -156,9 +167,10 @@ function createWindows(): void {
   launcherWindow = createLauncherWindow();
 
   // フォーカスを失ったら自動的に隠す。
-  // show 直後の blur や管理ウィンドウ遷移中は無視する。
+  // show 直後の blur・管理ウィンドウ遷移中・スニペット貼り付け中は無視する。
   launcherWindow.on('blur', () => {
     if (managementOpening) return;
+    if (snippetPasting) return;
     // 表示直後の blur は無視 (フォーカス遷移の過渡状態で発生しうる)
     if (Date.now() - lastShowTime < SHOW_BLUR_GUARD_MS) return;
     setTimeout(() => {
@@ -394,6 +406,12 @@ function registerIpcHandlers(): void {
 
   // アイテム起動 (起動後にランチャーを隠す)
   ipcMain.handle(IPC_CHANNELS.LAUNCH_ITEM, async (_event, item: LauncherItem) => {
+    // スニペットは PASTE_SNIPPET チャンネルで処理する。誤呼び出しは無視する。
+    if (item.type === 'snippet') {
+      console.warn('[launcher] LAUNCH_ITEM called with snippet type — ignored');
+      hideLauncher();
+      return;
+    }
     try {
       if (item.type === 'url') {
         await shell.openExternal(item.path);
@@ -525,6 +543,46 @@ function registerIpcHandlers(): void {
       return icon.toDataURL();
     } catch {
       return null;
+    }
+  });
+
+  // ─── スニペット貼り付け ────────────────────────────────────────
+  // Phase 5: 元ウィンドウ復帰 → SendInput(Ctrl+V) → クリップボード復元
+  ipcMain.handle(IPC_CHANNELS.PASTE_SNIPPET, async (_event, content: string) => {
+    snippetPasting = true;
+    // 貼り付け前のクリップボード内容を保存 (テキストのみ)
+    const prevClipboard = clipboard.readText();
+    try {
+      // 1. クリップボードにスニペット本文を書き込む
+      clipboard.writeText(content);
+
+      // 2. 保存済みウィンドウにフォーカスを戻す
+      //    復帰できなかった場合はコピーのみで終了 (Ctrl+V は送らない)
+      const restored = restoreForegroundWindow();
+
+      // 3. ランチャーを非表示にする
+      hideLauncher();
+
+      if (restored) {
+        // 4. フォーカス転送が OS に処理されるまで待機
+        await new Promise<void>((resolve) => setTimeout(resolve, 150));
+
+        // 5. Ctrl+V を送出してアクティブウィンドウに貼り付ける
+        sendCtrlV();
+
+        // 6. 貼り付けが完了するまで待ってからクリップボードを復元する
+        //    ※ユーザーが別のものをコピーしていたら復元しない
+        await new Promise<void>((resolve) => setTimeout(resolve, 500));
+        if (clipboard.readText() === content) {
+          clipboard.writeText(prevClipboard);
+          console.log('[paste-snippet] Clipboard restored');
+        }
+      } else {
+        // 復帰失敗: コピーのみ (ユーザーは手動で Ctrl+V を押す)
+        console.warn('[paste-snippet] Window restore failed — copied to clipboard only');
+      }
+    } finally {
+      snippetPasting = false;
     }
   });
 }

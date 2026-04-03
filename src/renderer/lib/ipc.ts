@@ -43,6 +43,9 @@ export interface ElectronAPI {
 
   // ファイルアイコン取得
   getFileIcon(filePath: string): Promise<string | null>;
+
+  // スニペット貼り付け (Phase 4: クリップボードコピー / Phase 5: 自動貼り付け)
+  pasteSnippet(content: string): Promise<void>;
 }
 
 export function getElectronAPI(): ElectronAPI | null {

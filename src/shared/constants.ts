@@ -39,6 +39,9 @@ export const IPC_CHANNELS = {
   // ファイルアイコン取得
   GET_FILE_ICON: 'get-file-icon',
 
+  // スニペット貼り付け
+  PASTE_SNIPPET: 'paste-snippet',
+
   // ウィンドウ操作
   WINDOW_CLOSE: 'window-close',
   WINDOW_MINIMIZE: 'window-minimize',

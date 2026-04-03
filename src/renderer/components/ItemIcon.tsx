@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FolderOpen, Monitor, Globe } from 'lucide-react';
+import { FolderOpen, Monitor, Globe, FileText } from 'lucide-react';
 import type { ItemType } from '@shared/types';
 import { useFileIcon } from '@/hooks/useFileIcon';
 import { cn } from '@/lib/utils';
@@ -81,11 +81,23 @@ function UrlIcon({ path, className }: { path: string; className?: string }) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// スニペットアイコン
+// ─────────────────────────────────────────────────────────────
+function SnippetIcon({ className }: { className?: string }) {
+  return (
+    <div className={cn('flex size-8 shrink-0 items-center justify-center rounded-md bg-purple-100 dark:bg-purple-900/30', className)}>
+      <FileText className="size-4 text-purple-600 dark:text-purple-400" />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
 // 公開コンポーネント
 // ─────────────────────────────────────────────────────────────
 export function ItemIcon({ type, path, className }: ItemIconProps) {
   if (type === 'folder') return <FolderIcon className={className} />;
   if (type === 'app') return <AppIcon path={path} className={className} />;
+  if (type === 'snippet') return <SnippetIcon className={className} />;
   return <UrlIcon path={path} className={className} />;
 }
 
@@ -94,6 +106,7 @@ export function typeLabel(type: ItemType): string {
     folder: 'フォルダ',
     app: 'アプリ',
     url: 'URL',
+    snippet: 'スニペット',
   };
   return labels[type] ?? type;
 }

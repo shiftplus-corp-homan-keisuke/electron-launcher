@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { Search, Settings, Star, FolderOpen, Monitor, Globe } from 'lucide-react';
+import { Search, Settings, Star, FolderOpen, Monitor, Globe, FileText } from 'lucide-react';
 import type { LauncherItem, ItemType } from '@shared/types';
 import { useItemsStore } from '@/stores/items-store';
 import { getElectronAPI } from '@/lib/ipc';
@@ -9,10 +9,11 @@ import { ItemIcon, typeLabel } from './ItemIcon';
 type FilterType = 'all' | ItemType;
 
 const FILTERS: { key: FilterType; label: string; icon: typeof Globe }[] = [
-  { key: 'all', label: 'すべて', icon: Globe },
-  { key: 'app', label: 'アプリ', icon: Monitor },
-  { key: 'folder', label: 'フォルダ', icon: FolderOpen },
-  { key: 'url', label: 'URL', icon: Globe },
+  { key: 'all',     label: 'すべて',      icon: Globe },
+  { key: 'app',     label: 'アプリ',      icon: Monitor },
+  { key: 'folder',  label: 'フォルダ',    icon: FolderOpen },
+  { key: 'url',     label: 'URL',         icon: Globe },
+  { key: 'snippet', label: 'スニペット',  icon: FileText },
 ];
 
 function sortItems(items: LauncherItem[]): LauncherItem[] {
@@ -58,7 +59,11 @@ export default function LauncherView() {
     const result = items.filter((item) => {
       if (filter !== 'all' && item.type !== filter) return false;
       if (!q) return true;
-      return item.name.toLowerCase().includes(q) || item.path.toLowerCase().includes(q);
+      return (
+        item.name.toLowerCase().includes(q) ||
+        item.path.toLowerCase().includes(q) ||
+        (item.content?.toLowerCase().includes(q) ?? false)
+      );
     });
     return sortItems(result);
   }, [items, query, filter]);
@@ -82,11 +87,15 @@ export default function LauncherView() {
     el?.scrollIntoView({ block: 'nearest' });
   }, [selectedIndex]);
 
-  // アイテム起動
+  // アイテム起動 / スニペットコピー
   const launch = useCallback(async (item: LauncherItem) => {
     const api = getElectronAPI();
     if (!api) return;
-    await api.launchItem(item);
+    if (item.type === 'snippet') {
+      await api.pasteSnippet(item.content ?? '');
+    } else {
+      await api.launchItem(item);
+    }
   }, []);
 
   // ピン留めトグル
@@ -246,7 +255,9 @@ export default function LauncherView() {
                     {item.name}
                   </div>
                   <div className="truncate text-xs text-muted-foreground">
-                    {item.path}
+                    {item.type === 'snippet'
+                      ? (item.content?.slice(0, 60) ?? '') + (item.content && item.content.length > 60 ? '…' : '')
+                      : item.path}
                   </div>
                 </div>
 
@@ -283,7 +294,7 @@ export default function LauncherView() {
       {/* フッター */}
       <div className="flex items-center justify-between border-t border-border px-4 py-2">
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span>↵ 開く</span>
+          <span>↵ {filtered[selectedIndex]?.type === 'snippet' ? '貼り付け' : '開く'}</span>
           <span>↑↓ 移動</span>
           <span>Tab 絞込</span>
           <span>Ctrl+D ピン</span>

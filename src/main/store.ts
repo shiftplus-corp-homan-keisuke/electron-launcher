@@ -70,6 +70,8 @@ export class ItemStore {
         pinned: item.pinned ?? false,
         launchCount: item.launchCount ?? 0,
         lastLaunchedAt: item.lastLaunchedAt ?? 0,
+        // content: snippet 以外の既存データは undefined のまま
+        ...(item.content !== undefined ? { content: item.content } : {}),
       };
     });
   }
